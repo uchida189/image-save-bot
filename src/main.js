@@ -6,8 +6,6 @@ function doPost(e) {
       return textResponse_(payload.challenge || '');
     }
 
-    assertSlackVerificationToken_(payload);
-
     if (payload.type === 'event_callback') {
       handleSlackEvent_(payload.event || {});
     }
@@ -80,14 +78,6 @@ function parseSlackPayload_(e) {
     return JSON.parse(e.postData.contents);
   } catch (error) {
     throw new Error('Slack payload was not valid JSON');
-  }
-}
-
-function assertSlackVerificationToken_(payload) {
-  var expectedToken = getSlackVerificationToken_();
-
-  if (expectedToken && payload.token !== expectedToken) {
-    throw new Error('Invalid Slack verification token');
   }
 }
 

@@ -15,14 +15,15 @@
   - `SLACK_BOT_TOKEN`: Slack Bot User OAuth Token
   - `DRIVE_ROOT_FOLDER_ID`: 保存先の親Google DriveフォルダID
 - Slack App設定は以下にする。
-  - Bot Event: `file_shared`
-  - Bot Token Scopes: `files:read`, `channels:read`
+  - Bot Event: `file_shared`, `message.channels`
+  - Bot Token Scopes: `files:read`, `channels:read`, `channels:history`
   - 対象public channelにはBotを参加させる
 
 ## Behavior
 
 - `doPost(e)` はJSON payloadを読む。`type === "url_verification"` なら `challenge` を `text/plain` で返す。
-- `type === "event_callback"` かつ inner eventが `file_shared` の場合だけ処理する。それ以外は成功レスポンスだけ返して無視する。
+- `type === "event_callback"` かつ inner eventが `file_shared` または `message` subtype `file_share` の場合だけ処理する。それ以外は成功レスポンスだけ返して無視する。
+- 1回の投稿に複数画像が含まれる場合は、イベント内のfile IDを重複排除して画像ごとに保存する。
 - `files.info` でファイル詳細を取得し、`mimetype` が `image/` で始まるものだけ保存する。
 - `conversations.info` で `channel_id` の情報を取得し、`is_channel === true` かつ `is_private !== true` のpublic channelだけ処理する。
 - Slackの `url_private_download` を優先し、なければ `url_private` をBearer token付きで取得してDriveに保存する。

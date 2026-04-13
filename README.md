@@ -50,15 +50,17 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
 
 6. Slack AppのEvent SubscriptionsでRequest URLにWeb App URLを設定する。
 
-   - Bot Event: `file_shared`
-   - Bot Token Scopes: `files:read`, `channels:read`
+   - Bot Event: `file_shared`, `message.channels`
+   - Bot Token Scopes: `files:read`, `channels:read`, `channels:history`
    - 対象public channelへBotを参加させる
+   - scopeを追加した場合はSlack Appを再インストールする
 
    Request URL検証で `challenge_failed` が出る場合は、`clasp:push` 後に新しいWeb Appデプロイを作り、その `/exec` URLを設定しているか確認する。
 
 ## Behavior
 
 - 保存対象はSlackの `mimetype` が `image/` で始まるファイルだけです。
+- 1回の投稿に複数画像が含まれる場合は、画像ごとに保存します。
 - 保存先は `45th(2025/10/1~)/channel-name/` の形式です。
 - チャンネル名の半角カタカナはGoogle Driveフォルダ作成時に全角カタカナへ変換します。
 - 2026/10/1以降は `46th(2026/10/1~)/channel-name/` になります。

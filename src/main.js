@@ -25,20 +25,61 @@ function doGet() {
 }
 
 function handleSlackEvent_(event) {
-  if (event.type !== 'file_shared') {
+  if (event.type !== 'file_shared' && !isSlackMessageFileShareEvent_(event)) {
     return {
       status: 'ignored_event',
       eventType: event.type || 'unknown',
+      eventSubtype: event.subtype || null,
     };
   }
 
-  var fileId = event.file_id || (event.file && event.file.id);
-  var channelId = event.channel_id || event.channel;
+  return handleSlackFileShareEvent_(event);
+}
 
-  if (!fileId || !channelId) {
-    throw new Error('Slack file_shared event did not include file_id or channel_id');
+function handleSlackFileShareEvent_(event) {
+  var channelId = event.channel_id || event.channel;
+  var fileIds = getSlackFileIdsFromEvent_(event);
+
+  if (!channelId) {
+    throw new Error('Slack file share event did not include channel_id');
   }
 
+  if (fileIds.length === 0) {
+    return {
+      status: 'ignored_no_files',
+      channelId: channelId,
+    };
+  }
+
+  var channel = getSlackConversationInfo_(channelId);
+
+  if (!isPublicSlackChannel_(channel)) {
+    console.log('Ignored non-public channel: ' + channelId);
+
+    return {
+      status: 'ignored_non_public_channel',
+      channelId: channelId,
+      fileCount: fileIds.length,
+    };
+  }
+
+  var results = fileIds.map(function (fileId) {
+    return saveSlackFileIfImage_(fileId, channel);
+  });
+
+  var result = {
+    status: 'processed_files',
+    channelId: channelId,
+    fileCount: fileIds.length,
+    results: results,
+  };
+
+  console.log(JSON.stringify(result));
+
+  return result;
+}
+
+function saveSlackFileIfImage_(fileId, channel) {
   var file = getSlackFileInfo_(fileId);
 
   if (!isSlackImageFile_(file)) {
@@ -51,22 +92,48 @@ function handleSlackEvent_(event) {
     };
   }
 
-  var channel = getSlackConversationInfo_(channelId);
+  return saveSlackImageToDrive_(file, channel);
+}
 
-  if (!isPublicSlackChannel_(channel)) {
-    console.log('Ignored non-public channel: ' + channelId);
+function isSlackMessageFileShareEvent_(event) {
+  return Boolean(event && event.type === 'message' && event.subtype === 'file_share');
+}
 
-    return {
-      status: 'ignored_non_public_channel',
-      fileId: fileId,
-      channelId: channelId,
-    };
+function getSlackFileIdsFromEvent_(event) {
+  var fileIds = [];
+
+  addSlackFileId_(fileIds, event.file_id);
+
+  if (event.file) {
+    addSlackFileId_(fileIds, event.file.id);
   }
 
-  var result = saveSlackImageToDrive_(file, channel);
-  console.log(JSON.stringify(result));
+  if (Array.isArray(event.files)) {
+    event.files.forEach(function (file) {
+      addSlackFileId_(fileIds, file && file.id);
+    });
+  }
 
-  return result;
+  return uniqueValues_(fileIds);
+}
+
+function addSlackFileId_(fileIds, fileId) {
+  if (fileId) {
+    fileIds.push(String(fileId));
+  }
+}
+
+function uniqueValues_(values) {
+  var seen = {};
+
+  return values.filter(function (value) {
+    if (seen[value]) {
+      return false;
+    }
+
+    seen[value] = true;
+    return true;
+  });
 }
 
 function parseSlackPayload_(e) {

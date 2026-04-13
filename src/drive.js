@@ -1,4 +1,43 @@
 function saveSlackImageToDrive_(file, channel) {
+  var dedupeKey = getSlackFileDedupeKey_(file);
+  var cache = CacheService.getScriptCache();
+  var cachedDriveFileId = cache.get(dedupeKey);
+
+  if (cachedDriveFileId) {
+    return {
+      status: 'skipped_recent_duplicate',
+      slackFileId: file.id,
+      fileId: cachedDriveFileId,
+    };
+  }
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+
+  try {
+    cachedDriveFileId = cache.get(dedupeKey);
+
+    if (cachedDriveFileId) {
+      return {
+        status: 'skipped_recent_duplicate',
+        slackFileId: file.id,
+        fileId: cachedDriveFileId,
+      };
+    }
+
+    var result = saveSlackImageToDriveWithLock_(file, channel);
+
+    if (result.fileId) {
+      cache.put(dedupeKey, result.fileId, 21600);
+    }
+
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function saveSlackImageToDriveWithLock_(file, channel) {
   var rootFolder = DriveApp.getFolderById(getDriveRootFolderId_());
   var generationFolder = getOrCreateChildFolder_(rootFolder, getGenerationFolderName_(new Date()));
   var channelFolder = getOrCreateChildFolder_(generationFolder, getChannelFolderName_(channel));
@@ -10,6 +49,7 @@ function saveSlackImageToDrive_(file, channel) {
 
     return {
       status: 'skipped_duplicate',
+      slackFileId: file.id,
       fileId: existingFile.getId(),
       fileName: fileName,
       folderId: channelFolder.getId(),
@@ -22,11 +62,16 @@ function saveSlackImageToDrive_(file, channel) {
 
   return {
     status: 'saved',
+    slackFileId: file.id,
     fileId: driveFile.getId(),
     fileName: fileName,
     folderId: channelFolder.getId(),
     url: driveFile.getUrl(),
   };
+}
+
+function getSlackFileDedupeKey_(file) {
+  return 'slack-file:' + file.id;
 }
 
 function getOrCreateChildFolder_(parentFolder, folderName) {

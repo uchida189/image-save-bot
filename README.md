@@ -63,6 +63,7 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
 - チャンネル名の半角カタカナはGoogle Driveフォルダ作成時に全角カタカナへ変換します。
 - 2026/10/1以降は `46th(2026/10/1~)/channel-name/` になります。
 - ファイル名は `yyyyMMdd-HHmmss_<slackFileId>_<originalName>` です。
+- Slack retryによる二重保存を避けるため、保存処理は排他制御し、同じSlack file IDは短時間スキップします。
 
 ## Commands
 

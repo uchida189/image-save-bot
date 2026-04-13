@@ -44,6 +44,7 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
    
    上記コマンドでpushできなかったら
    ```sh
+   cd src
    clasp push
    ```
 
@@ -59,6 +60,7 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
 
 - 保存対象はSlackの `mimetype` が `image/` で始まるファイルだけです。
 - 保存先は `45th(2025/10/1~)/channel-name/` の形式です。
+- チャンネル名の半角カタカナはGoogle Driveフォルダ作成時に全角カタカナへ変換します。
 - 2026/10/1以降は `46th(2026/10/1~)/channel-name/` になります。
 - ファイル名は `yyyyMMdd-HHmmss_<slackFileId>_<originalName>` です。
 

@@ -40,7 +40,9 @@ function getOrCreateChildFolder_(parentFolder, folderName) {
 }
 
 function getChannelFolderName_(channel) {
-  return sanitizeDriveName_(channel.name_normalized || channel.name || channel.id, channel.id);
+  var channelName = channel.name || channel.name_normalized || channel.id;
+
+  return sanitizeDriveName_(normalizeKanaForDriveName_(channelName), channel.id);
 }
 
 function getGenerationFolderName_(date) {
@@ -92,6 +94,18 @@ function sanitizeDriveName_(value, fallback) {
   text = text.trim();
 
   return text || fallback;
+}
+
+function normalizeKanaForDriveName_(value) {
+  var text = String(value || '');
+
+  if (typeof text.normalize !== 'function') {
+    return text;
+  }
+
+  return text.replace(/[\uff61-\uff9f]+/g, function (kana) {
+    return kana.normalize('NFKC');
+  });
 }
 
 function formatOrdinal_(number) {

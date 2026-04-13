@@ -13,7 +13,7 @@
 - GASコードは `src/main.js`, `src/slack.js`, `src/drive.js`, `src/config.js` に分ける。
 - Script Propertiesで以下を設定する。
   - `SLACK_BOT_TOKEN`: Slack Bot User OAuth Token
-  - `SLACK_VERIFICATION_TOKEN`: Slack Events API payloadの `token` 検証用
+  - `SLACK_VERIFICATION_TOKEN`: Slack Events API payloadの `token` 検証用。Slackではdeprecated扱いのため任意
   - `DRIVE_ROOT_FOLDER_ID`: 保存先の親Google DriveフォルダID
 - Slack App設定は以下にする。
   - Bot Event: `file_shared`
@@ -22,7 +22,7 @@
 
 ## Behavior
 
-- `doPost(e)` はJSON payloadを読む。`type === "url_verification"` なら `challenge` を `text/plain` で返す。
+- `doPost(e)` はJSON payloadを読む。`type === "url_verification"` ならtoken検証より先に `challenge` を `text/plain` で返す。
 - `type === "event_callback"` かつ inner eventが `file_shared` の場合だけ処理する。それ以外は成功レスポンスだけ返して無視する。
 - `files.info` でファイル詳細を取得し、`mimetype` が `image/` で始まるものだけ保存する。
 - `conversations.info` で `channel_id` の情報を取得し、`is_channel === true` かつ `is_private !== true` のpublic channelだけ処理する。
@@ -44,5 +44,5 @@
 
 - 無料・低保守を優先し、DB、キュー、Cloud Run、OAuthインストールフロー、slash command、メタデータ付与は実装しない。
 - Driveの保存先ルートは `DRIVE_ROOT_FOLDER_ID` で明示する。未設定時はエラーとしてログに出し、保存しない。
-- Slack署名検証はGAS Web Appでリクエストヘッダーを扱いにくいため、初期版ではSlack Events API payloadの `token` で検証する。
+- Slack署名検証はGAS Web Appでリクエストヘッダーを扱いにくいため、初期版ではSlack Events API payloadの `token` が設定されている場合だけ検証する。
 - Slack Events APIは3秒以内の応答が推奨されるが、初期版ではGAS内で同期処理する。イベント量が増えて失敗する場合だけ、後続対応として軽量キュー化を検討する。

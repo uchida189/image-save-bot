@@ -16,7 +16,7 @@ function getSlackBotToken_() {
 }
 
 function getSlackVerificationToken_() {
-  return getRequiredScriptProperty_(SCRIPT_PROPERTY_KEYS.SLACK_VERIFICATION_TOKEN);
+  return getOptionalScriptProperty_(SCRIPT_PROPERTY_KEYS.SLACK_VERIFICATION_TOKEN);
 }
 
 function getRequiredScriptProperty_(key) {
@@ -27,4 +27,8 @@ function getRequiredScriptProperty_(key) {
   }
 
   return value;
+}
+
+function getOptionalScriptProperty_(key) {
+  return PropertiesService.getScriptProperties().getProperty(key) || '';
 }

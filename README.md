@@ -33,10 +33,10 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
 4. Apps ScriptのScript Propertiesに以下を設定する。
 
    - `SLACK_BOT_TOKEN`: Slack Bot User OAuth Token
-   - `SLACK_VERIFICATION_TOKEN`: Slack Events API payloadの `token`
+   - `SLACK_VERIFICATION_TOKEN`: Slack Events API payloadの `token`。Slackではdeprecated扱いのため任意。未設定なら検証をスキップする
    - `DRIVE_ROOT_FOLDER_ID`: 保存先の親Google DriveフォルダID
 
-5. Apps Scriptへ反映してWeb Appとしてデプロイする。
+5. Apps Scriptへ反映してWeb Appとしてデプロイする。デプロイURLは `/exec` で終わるWeb App URLを使う。
 
    ```sh
    npm run clasp:push
@@ -53,6 +53,8 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
    - Bot Event: `file_shared`
    - Bot Token Scopes: `files:read`, `channels:read`
    - 対象public channelへBotを参加させる
+
+   Request URL検証で `challenge_failed` が出る場合は、`clasp:push` 後に新しいWeb Appデプロイを作り、その `/exec` URLを設定しているか確認する。
 
 ## Behavior
 

@@ -10,48 +10,58 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
    npm install
    ```
 
-2. Apps Script APIを有効にし、claspにログインする。
-
+   claspはグローバルインストールした方がいいかも
    ```sh
-   npm run clasp:login
+   npm install @google/clasp -g
    ```
 
-3. 初回だけApps Scriptプロジェクトを作る。
+3. src/ディレクトリに移動した後、Apps Script APIを有効にし、claspにログインする。
 
    ```sh
-   npm run clasp:create
+   cd src
+   clasp login
+   ```
+
+4. 初回だけApps Scriptプロジェクトを作る。
+
+   ```sh
+   clasp create
    ```
 
    既存プロジェクトを使う場合はcloneする。
 
    ```sh
-   npm run clasp:clone -- SCRIPT_ID
+   clasp clone -- SCRIPT_ID
    ```
 
    `SCRIPT_ID` はApps Scriptエディタの「プロジェクトの設定」にあるスクリプトID。どちらの方法でも、成功するとリポジトリ直下にローカル用の `.clasp.json` が作られる。
 
-4. Apps ScriptのScript Propertiesに以下を設定する。
+5. Apps ScriptのScript Propertiesに以下を設定する。
 
-   - `SLACK_BOT_TOKEN`: Slack Bot User OAuth Token
+   - `SLACK_BOT_TOKEN`: Slack Bot User OAuth Token（xoxb-で始まるやつ）
    - `DRIVE_ROOT_FOLDER_ID`: 保存先の親Google DriveフォルダID
 
-5. Apps Scriptへ反映してWeb Appとしてデプロイする。デプロイURLは `/exec` で終わるWeb App URLを使う。
-
-   ```sh
-   npm run clasp:push
-   npm run clasp:deploy
-   ```
+6. Apps Scriptへ反映してWeb Appとしてデプロイする。デプロイURLは `/exec` で終わるWeb App URLを使う。
    
-   上記コマンドでpushできなかったら
    ```sh
-   cd src
    clasp push
+   clasp deploy
    ```
    
    最初のdeployだと、コマンドだとGoogle Driveへの操作を承認する作業を通らないので、ブラウザの方のGASから手動でデプロイを行う必要があるかも
 
-6. Slack AppのEvent SubscriptionsでRequest URLにWeb App URLを設定する。
+   デプロイを解除する場合は以下のコマンドを実行し、デプロイ解除するデプロイIDを選択することで解除できる
+   ```sh
+   clasp undeploy
+   # あらかじめデプロイ解除するデプロイIDが分かっている場合は以下のコマンドでも可能
+   clasp undeploy デプロイID
+   ```
+   
 
+8. Slack AppのEvent SubscriptionsでRequest URLにWeb App URLを設定する。
+   
+   botの管理画面：https://api.slack.com/apps/A0ATB9M887J/general?
+   
    - Bot Event: `file_shared`, `message.channels`
    - Bot Token Scopes: `files:read`, `channels:read`, `channels:history`
    - 対象public channelへBotを参加させる

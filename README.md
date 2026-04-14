@@ -47,6 +47,8 @@ Slackのpublic channelに投稿された画像をGoogle Driveへ保存するGoog
    cd src
    clasp push
    ```
+   
+   最初のdeployだと、コマンドだとGoogle Driveへの操作を承認する作業を通らないので、ブラウザの方のGASから手動でデプロイを行う必要があるかも
 
 6. Slack AppのEvent SubscriptionsでRequest URLにWeb App URLを設定する。
 
